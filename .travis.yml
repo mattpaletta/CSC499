@@ -1,0 +1,15 @@
+sudo: required
+cache: docker
+
+language: python
+
+services: 
+  - docker
+
+before_install:
+  - docker login -u $DOCKER_USER -p $DOCKER_PASS
+
+script:
+  - docker image build -t dask:latest .
+  - docker tag r-base:latest mattpaletta/dask:latest
+  - docker push mattpaletta/dask:latest
