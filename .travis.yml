@@ -11,5 +11,5 @@ before_install:
 
 script:
   - docker image build -t dask:latest .
-  - docker tag r-base:latest mattpaletta/dask:latest
+  - docker tag dask:latest mattpaletta/dask:latest
   - docker push mattpaletta/dask:latest
