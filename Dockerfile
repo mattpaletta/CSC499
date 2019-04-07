@@ -10,7 +10,7 @@ RUN apt-get -y update
 RUN apt-get -y install python3 wget python3-pip gdal-bin python-gdal python3-gdal python-pyproj libhdf4-dev python3-h5py libgrib-api-dev libgrib2c-dev libnetcdf-dev netcdf-bin
 
 RUN pip3 install matplotlib numpy pandas scipy cython pyproj
-RUN pip3 install pyepr python-hdf4 glymur lxml netcdf4 h5netcdf dask
+RUN pip3 install pyepr python-hdf4 glymur lxml netcdf4 h5netcdf dask[distributed] dask[scheduler]
 
 # RUN apt-get update && \
 #    apt-get install -y software-properties-common && \
