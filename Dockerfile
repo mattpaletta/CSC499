@@ -31,5 +31,6 @@ RUN tar zxf polymer-v4.9.tar.gz
 WORKDIR polymer-v4.9
 RUN make auxdata_all && \
     python3 setup.py build_ext --inplace && \
+    python3 setup.py install && \
     make ancillary && \
     pip3 install filelock
