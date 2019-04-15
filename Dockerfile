@@ -37,3 +37,5 @@ RUN make auxdata_all && \
     pip3 install filelock
 
 RUN cp -f /usr/bin/python3 /usr/bin/python
+
+WORKDIR /testrun
