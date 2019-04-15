@@ -32,5 +32,5 @@ WORKDIR polymer-v4.9
 RUN make auxdata_all && \
     python3 setup.py build_ext --inplace && \
     make ancillary && \
-    pip3 install filelock && \
-    cp -r /polymer-v4.9/polymer /usr/local/lib/python3.6/dist-packages/polymer/
+    pip3 install filelock
+    #cp -r /polymer-v4.9/polymer /usr/local/lib/python3.6/dist-packages/polymer/
