@@ -7,18 +7,20 @@ RUN apt-get -y update
 RUN apt-get -y install software-properties-common build-essential
 
 RUN apt-get -y update
-RUN apt-get -y install python3 wget python3-pip gdal-bin python-gdal python3-gdal python-pyproj libhdf4-dev python3-h5py libgrib-api-dev libgrib2c-dev libnetcdf-dev netcdf-bin
+RUN apt-get -y install python3 wget python3-pip
 
-RUN pip3 install matplotlib numpy pandas scipy cython pyproj azure
-RUN pip3 install pyepr python-hdf4 glymur lxml netcdf4 h5netcdf dask[distributed] dask[scheduler]
+RUN apt-get -y install gdal-bin python-gdal python3-gdal python-pyproj libhdf4-dev python3-h5py libgrib-api-dev libgrib2c-dev libnetcdf-dev netcdf-bin
+RUN apt-get -y update
 
-# RUN apt-get update && \
-#    apt-get install -y software-properties-common && \
-#    add-apt-repository ppa:webupd8team/java && \
-#    apt-get update && \
-#    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections && \
-#    apt-get -y --allow-unauthenticated install oracle-java8-installer \
-#    openjdk-8-jdk
+RUN pip3 install jupyter matplotlib numpy pandas scipy
+RUN pip3 install pyepr
+RUN pip3 install cython pyproj
+RUN pip3 install python-hdf4 glymur lxml
+RUN pip3 install netcdf4
+RUN pip3 install h5netcdf
+RUN pip3 install matplotlib numpy pandas scipy cython pyproj
+
+RUN pip3 install azure dask[distributed] dask[scheduler]
 
 RUN wget -nc https://hdfeos.org/software/pyhdf/pyhdf-0.9.0.tar.gz && tar zxf pyhdf-0.9.0.tar.gz
 WORKDIR pyhdf-0.9.0
@@ -33,4 +35,5 @@ RUN make auxdata_all && \
     python3 setup.py build_ext --inplace && \
     make ancillary && \
     pip3 install filelock
-    #cp -r /polymer-v4.9/polymer /usr/local/lib/python3.6/dist-packages/polymer/
+
+RUN cp -f /usr/bin/python3 /usr/bin/python
