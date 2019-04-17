@@ -155,7 +155,7 @@ def update_paths():
 def run_worker():
     update_paths()
 
-    redis_conn = redis.StrictRedis(host = os.environ["SCHEDULER_HOST_PORT"], port = 6379, encoding = "utf-8")
+    redis_conn = redis.StrictRedis(host = os.environ["SCHEDULER_SERVICE_HOST"], port = 6379, encoding = "utf-8")
 
     while True:
         folder_to_process = redis_conn.blpop("geo-queue", timeout = 0)
