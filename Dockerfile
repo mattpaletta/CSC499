@@ -1,4 +1,4 @@
-FROM ubuntu:18.10
+FROM ubuntu:18.04
 
 COPY polymer-v4.9.tar.gz /
     #here you need put the script name here.
@@ -18,14 +18,6 @@ RUN pip3 install cython pyproj
 RUN pip3 install python-hdf4 glymur lxml
 RUN pip3 install netcdf4
 RUN pip3 install h5netcdf
-
-RUN apt-get update && \
-    apt-get install -y software-properties-common && \
-    add-apt-repository ppa:webupd8team/java && \
-    apt-get update && \
-    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections && \
-    apt-get -y --allow-unauthenticated install oracle-java8-installer \
-    openjdk-8-jdk git
 
 RUN wget -nc https://hdfeos.org/software/pyhdf/pyhdf-0.9.0.tar.gz && tar zxf pyhdf-0.9.0.tar.gz
 WORKDIR pyhdf-0.9.0
