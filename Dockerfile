@@ -7,7 +7,7 @@ RUN apt-get -y update
 RUN apt-get -y install software-properties-common build-essential
 
 RUN apt-get -y update
-RUN apt-get -y install python3 wget python3-pip
+RUN apt-get -y install python3 wget python3-pip git
 
 RUN apt-get -y install gdal-bin python-gdal python3-gdal python-pyproj libhdf4-dev python3-h5py libgrib-api-dev libgrib2c-dev libnetcdf-dev netcdf-bin
 RUN apt-get -y update
@@ -33,7 +33,7 @@ RUN make auxdata_all && \
     make ancillary && \
     pip3 install filelock
 
-COPY requirements.txt /requirements.txt
+COPY my_requirements.txt /requirements.txt
 RUN pip3 install -r /requirements.txt
 
 WORKDIR /testrun
