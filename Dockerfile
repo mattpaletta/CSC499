@@ -18,9 +18,14 @@ RUN pip3 install cython pyproj
 RUN pip3 install python-hdf4 glymur lxml
 RUN pip3 install netcdf4
 RUN pip3 install h5netcdf
-RUN pip3 install matplotlib numpy pandas scipy cython pyproj
 
-RUN pip3 install azure dask[distributed] dask[scheduler]
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository ppa:webupd8team/java && \
+    apt-get update && \
+    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections && \
+    apt-get -y --allow-unauthenticated install oracle-java8-installer \
+    openjdk-8-jdk git
 
 RUN wget -nc https://hdfeos.org/software/pyhdf/pyhdf-0.9.0.tar.gz && tar zxf pyhdf-0.9.0.tar.gz
 WORKDIR pyhdf-0.9.0
@@ -28,7 +33,7 @@ RUN python3 setup.py install && \
     python3 -m wheel convert /pyhdf-0.9.0/dist/pyhdf-0.9.0-py3.6-linux-x86_64.egg && \
     pip3 install /pyhdf-0.9.0/pyhdf-0.9.0-cp36-none-linux_x86_64.whl
 
-WORKDIR /
+WORKDIR ../
 RUN tar zxf polymer-v4.9.tar.gz
 WORKDIR polymer-v4.9
 RUN make auxdata_all && \
@@ -36,6 +41,13 @@ RUN make auxdata_all && \
     make ancillary && \
     pip3 install filelock
 
-RUN cp -f /usr/bin/python3 /usr/bin/python
+COPY requirements.txt /requirements.txt
+RUN pip3 install -r /requirements.txt
 
 WORKDIR /testrun
+COPY test_redis.py /testrun
+
+# Manually patch python versions
+RUN cp -f /usr/bin/python3 /usr/bin/python
+
+ENTRYPOINT [ "python3", "test_redis.py"]

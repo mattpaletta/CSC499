@@ -1,0 +1,15 @@
+numpy
+pandas
+scipy
+pyepr
+cython
+pyproj
+python-hdf4
+glymur
+lxml
+netcdf4
+h5netcdf
+
+redis
+azure-storage-blob
+git+git://github.com/mattpaletta/pynotstdlib.git
