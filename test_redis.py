@@ -134,6 +134,8 @@ def update_paths():
     import shutil
     import sys
 
+    print(os.environ)
+
     cwd = os.getcwd()
     open("__init__.py", 'a').close()
 
