@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:18.10
 
 COPY polymer-v4.9.tar.gz /
     #here you need put the script name here.

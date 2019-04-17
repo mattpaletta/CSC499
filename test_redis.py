@@ -115,7 +115,7 @@ def process_file(folder_blob: str):
     # 0 for single threaded
     # > 1 for that many threads
     # -1 for all the threads on the machine.
-    run_atm_corr(level1, level2, multiprocessing = -1)
+    run_atm_corr(level1, level2, multiprocessing = 4)
 
     # The output file is the last thing in the path of the target_root_folder
     output_file = list(filter(lambda f: f.startswith(target_root_folder.split("/")[-1]), os.listdir(output_dir)))[0]
@@ -158,7 +158,8 @@ def run_worker():
     redis_conn = redis.StrictRedis(host = os.environ["SCHEDULER_SERVICE_HOST"], port = 6379, encoding = "utf-8")
 
     while True:
-        queue_name, folder_to_process = redis_conn.blpop("geo-queue", timeout = 0)
+        queue_name, folder_to_process_raw = redis_conn.blpop("geo-queue", timeout = 0)
+        folder_to_process = folder_to_process_raw.decode("utf-8")
         logging.info("Got folder: {0}".format(folder_to_process))
         process_file(folder_to_process)
 

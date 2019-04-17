@@ -10,6 +10,7 @@ lxml
 netcdf4
 h5netcdf
 
+psutil
 redis
 azure-storage-blob
 git+git://github.com/mattpaletta/pynotstdlib.git
