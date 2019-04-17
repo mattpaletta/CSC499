@@ -158,7 +158,7 @@ def run_worker():
     redis_conn = redis.StrictRedis(host = os.environ["SCHEDULER_SERVICE_HOST"], port = 6379, encoding = "utf-8")
 
     while True:
-        folder_to_process = redis_conn.blpop("geo-queue", timeout = 0)
+        queue_name, folder_to_process = redis_conn.blpop("geo-queue", timeout = 0)
         logging.info("Got folder: {0}".format(folder_to_process))
         process_file(folder_to_process)
 
