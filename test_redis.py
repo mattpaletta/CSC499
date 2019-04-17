@@ -51,7 +51,7 @@ def process_file(folder_blob: str):
         import shutil
         shutil.rmtree(target_root_folder)
         os.makedirs(target_root_folder, exist_ok = True)
-    
+
     import psutil
 
     def download_file(sub_blob_file: Blob):
@@ -61,14 +61,14 @@ def process_file(folder_blob: str):
         target_output_file = os.path.join(input_file_name, sub_blob_file.name)
 
         import time
-        retry=0
+        retry = 0
 
         while not os.path.exists(target_output_file):
             try:
                 block_blob_service.get_blob_to_path(container_name,
                                                     blob_name = sub_blob_file.name,
                                                     file_path = target_output_file,
-                                                    validate_content=True)
+                                                    validate_content = True)
             except Exception:
                 time.sleep(2 ** retry)
                 retry += 1
@@ -81,10 +81,9 @@ def process_file(folder_blob: str):
         task_list: List[Future] = []
         for sub_blob_file in block_blob_service.list_blobs(container_name, prefix = folder_blob):
             # download_file(sub_blob_file)
-            task_future = executor.submit(download_file, sub_blob_file)
-            task_list.append(task_future)
+            task_list.append(executor.submit(download_file, sub_blob_file))
 
-       concurrent.futures.wait(task_list)
+    concurrent.futures.wait(task_list)
 
     print("Finished downloading files")
     sys.stdout.flush()
@@ -101,7 +100,7 @@ def process_file(folder_blob: str):
     if len(output_file) != 0:
         # We already have a file, delete it
         os.remove(os.path.join(output_dir, output_file[0]))
-    
+
     print(psutil.virtual_memory())
 
     level1 = Level1(target_root_folder)
@@ -124,10 +123,11 @@ def process_file(folder_blob: str):
     print("Uploading to Blob storage as blob: {0} <-> {1}".format(output_dir, output_file))
 
     # Upload the created file, use local_file_name for the blob name
-    block_blob_service.create_blob_from_path(container_name, 
-                                             blob_name = os.path.join("output", output_file), 
+    block_blob_service.create_blob_from_path(container_name,
+                                             blob_name = os.path.join("output", output_file),
                                              file_path = os.path.join(output_dir, output_file),
                                              validate_content = True)
+
 
 def update_paths():
     import os
@@ -145,7 +145,7 @@ def update_paths():
         if os.path.exists(os.path.join(cwd, folder)):
             shutil.rmtree(os.path.join(cwd, folder))
         shutil.copytree("/polymer-v4.9/" + folder, os.path.join(cwd, folder))
-    
+
     sys.path.append(cwd)
     import polymer.main
 
