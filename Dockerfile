@@ -36,8 +36,8 @@ RUN make auxdata_all && \
 COPY my_requirements.txt /requirements.txt
 RUN pip3 install -r /requirements.txt
 
-WORKDIR /testrun
-COPY test_redis.py /testrun
+#WORKDIR /testrun
+COPY test_redis.py /polymer-v4.9
 
 # Manually patch python versions
 RUN cp -f /usr/bin/python3 /usr/bin/python
