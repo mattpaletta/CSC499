@@ -1,6 +1,7 @@
 import concurrent
 import os
 import pickle
+import queue
 import sys
 import tempfile
 from concurrent.futures import ThreadPoolExecutor, Future
@@ -22,7 +23,7 @@ container_name = "myblobs"
 account_name = "jgoddingblob"
 account_key = "rzfvY+HXTZGKJs5MMon3PHHKKtdBL9eZnKBw3tuav62xczvPNpJjp2D2Qg/bSyucTdVwNYbSu1veAF293ufWWQ=="
 
-default_logging(logging.ERROR)
+default_logging(logging.INFO)
 
 download_file_queue = Queue(maxsize = 1)
 run_polymer_queue = Queue(maxsize = 1)
@@ -118,14 +119,17 @@ def run_polymer(target_root_folder, output_dir, next_folder, block_blob_service)
     # 0 for single threaded
     # > 1 for that many threads
     # -1 for all the threads on the machine.
+
+    num_threads = sys.argv[1] if len(sys.argv) >= 2 else 0
+
     try:
-        run_atm_corr(level1, level2, multiprocessing = 0)
+        run_atm_corr(level1, level2, multiprocessing = num_threads)
     except FileNotFoundError:
         grab_file(folder_blob = next_folder, block_blob_service = block_blob_service)
-        run_atm_corr(level1, level2, multiprocessing = 0)
+        run_atm_corr(level1, level2, multiprocessing = num_threads)
     except OSError:
         grab_file(folder_blob = next_folder, block_blob_service = block_blob_service)
-        run_atm_corr(level1, level2, multiprocessing = 0)
+        run_atm_corr(level1, level2, multiprocessing = num_threads)
 
     # The output file is the last thing in the path of the target_root_folder
     output_file = list(filter(lambda f: f.startswith(target_root_folder.split("/")[-1]), os.listdir(output_dir)))[0]
@@ -179,13 +183,14 @@ def download_file_process():
     block_blob_service = get_blob_service()
 
     while True:
-        print("Download Qsize: {0}".format(download_file_queue.qsize()))
-        next_folder = download_file_queue.get(block = True, timeout = 1)
-        if next_folder is None:
+        logging.info("Download Qsize: {0}".format(download_file_queue.qsize()))
+        try:
+            next_folder = download_file_queue.get(block = True, timeout = 1)
+        except queue.Empty:
             continue
 
         target_root_folder, output_dir = grab_file(folder_blob = next_folder, block_blob_service = block_blob_service)
-        print("Run Polymer Qsize: {0}".format(run_polymer_queue.qsize()))
+        logging.info("Run Polymer Qsize: {0}".format(run_polymer_queue.qsize()))
         run_polymer_queue.put((target_root_folder, output_dir, next_folder), block = True, timeout = None)
 
         # with open("/download_queue.pkl", "w") as f:
@@ -196,10 +201,14 @@ def process_polymer_process():
     block_blob_service = get_blob_service()
 
     while True:
-        next_folder = run_polymer_queue.get(block = True, timeout = 1)
+        try:
+            next_folder = run_polymer_queue.get(block = True, timeout = 1)
+        except queue.Empty:
+            continue
 
         if next_folder is None:
             continue
+
 
         target_root_folder, output_dir, next_folder = next_folder
         output_dir, output_file = run_polymer(target_root_folder, output_dir, next_folder, block_blob_service)
@@ -215,7 +224,10 @@ def upload_file_process():
     redis_conn = redis.StrictRedis(host = os.environ["SCHEDULER_SERVICE_HOST"], port = 6379, encoding = "utf-8")
 
     while True:
-        next_file = upload_output_queue.get(block = True, timeout = 1)
+        try:
+            next_file = upload_output_queue.get(block = True, timeout = 1)
+        except queue.Empty:
+            continue
 
         if next_file is None:
             continue
@@ -242,23 +254,23 @@ def run_worker():
     upload_thread.start()
 
     # Read from pickle files
-    if os.path.exists("/download_queue.pkl"):
-        with open("/download_queue.pkl", "r") as f:
-            old_data = pickle.load(f)
-            for o in old_data:
-                download_file_queue.put(o)
-
-    if os.path.exists("/run_polymer_queue.pkl"):
-        with open("/run_polymer_queue.pkl", "r") as f:
-            old_data = pickle.load(f)
-            for o in old_data:
-                run_polymer_queue.put(o)
-
-    if os.path.exists("/upload_queue.pkl"):
-        with open("/upload_queue.pkl", "r") as f:
-            old_data = pickle.load(f)
-            for o in old_data:
-                upload_output_queue.put(o)
+    # if os.path.exists("/download_queue.pkl"):
+    #     with open("/download_queue.pkl", "r") as f:
+    #         old_data = pickle.load(f)
+    #         for o in old_data:
+    #             download_file_queue.put(o)
+    #
+    # if os.path.exists("/run_polymer_queue.pkl"):
+    #     with open("/run_polymer_queue.pkl", "r") as f:
+    #         old_data = pickle.load(f)
+    #         for o in old_data:
+    #             run_polymer_queue.put(o)
+    #
+    # if os.path.exists("/upload_queue.pkl"):
+    #     with open("/upload_queue.pkl", "r") as f:
+    #         old_data = pickle.load(f)
+    #         for o in old_data:
+    #             upload_output_queue.put(o)
 
     while True:
         next_folder = redis_conn.blpop("geo-queue", timeout = 1)
@@ -269,9 +281,10 @@ def run_worker():
         queue_name, folder_to_process_raw = next_folder
         folder_to_process = folder_to_process_raw.decode("utf-8")
         logging.info("Got folder: {0}".format(folder_to_process))
-        print("Putting in Download: {0}".format(download_file_queue.qsize()))
+        # logging.info("Putting in Download: {0}".format(download_file_queue.qsize()))
         download_file_queue.put(folder_to_process, block = True, timeout = None)
 
 
 if __name__ == "__main__":
+    print("Hello!")
     run_worker()
