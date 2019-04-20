@@ -180,7 +180,10 @@ def download_file_process():
 
     while True:
         print("Download Qsize: {0}".format(download_file_queue.qsize()))
-        next_folder = download_file_queue.get(block = True, timeout = None)
+        next_folder = download_file_queue.get(block = True, timeout = 1)
+        if next_folder is None:
+            continue
+
         target_root_folder, output_dir = grab_file(folder_blob = next_folder, block_blob_service = block_blob_service)
         print("Run Polymer Qsize: {0}".format(run_polymer_queue.qsize()))
         run_polymer_queue.put((target_root_folder, output_dir, next_folder), block = True, timeout = None)
@@ -192,11 +195,13 @@ def download_file_process():
 def process_polymer_process():
     block_blob_service = get_blob_service()
 
-    # global run_polymer_queue
-    # global upload_output_queue
-
     while True:
-        target_root_folder, output_dir, next_folder = run_polymer_queue.get(block = True, timeout = None)
+        next_folder = run_polymer_queue.get(block = True, timeout = 1)
+
+        if next_folder is None:
+            continue
+
+        target_root_folder, output_dir, next_folder = next_folder
         output_dir, output_file = run_polymer(target_root_folder, output_dir, next_folder, block_blob_service)
         upload_output_queue.put((output_dir, output_file, target_root_folder, next_folder), block = True, timeout = None)
 
@@ -210,7 +215,12 @@ def upload_file_process():
     redis_conn = redis.StrictRedis(host = os.environ["SCHEDULER_SERVICE_HOST"], port = 6379, encoding = "utf-8")
 
     while True:
-        output_dir, output_file, target_root_folder, next_folder = upload_output_queue.get(block = True, timeout = None)
+        next_file = upload_output_queue.get(block = True, timeout = 1)
+
+        if next_file is None:
+            continue
+
+        output_dir, output_file, target_root_folder, next_folder = next_file
         upload_output(output_dir, output_file, block_blob_service, target_root_folder, next_folder)
         # with open("/upload_queue.pkl", "w") as f:
         #     pickle.dump(list(upload_output_queue.queue), f)
@@ -251,7 +261,12 @@ def run_worker():
                 upload_output_queue.put(o)
 
     while True:
-        queue_name, folder_to_process_raw = redis_conn.blpop("geo-queue", timeout = None)
+        next_folder = redis_conn.blpop("geo-queue", timeout = 1)
+
+        if next_folder is None:
+            continue
+
+        queue_name, folder_to_process_raw = next_folder
         folder_to_process = folder_to_process_raw.decode("utf-8")
         logging.info("Got folder: {0}".format(folder_to_process))
         print("Putting in Download: {0}".format(download_file_queue.qsize()))
